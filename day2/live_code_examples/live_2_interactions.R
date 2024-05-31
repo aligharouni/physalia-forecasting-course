@@ -1,3 +1,5 @@
+## Goal: How do I model interaction in gam?
+
 library(mgcv)
 library(marginaleffects)
 library(dplyr)
@@ -51,13 +53,13 @@ basis(s(x0, bs = 'bs', m = 1), data = simdat) %>%
 
 # But how to include interactions in GAMs?
 
-# Option 1: including multiple terms in s()
+# Option 1: including multiple terms in s() ## easiest way
 # This assumes all covariates wrapped in s() are on the same scale and 
 # that smoothness should be the same in all dimensions
 mod1 <- gam(y ~ s(x0, x1, k = 100, bs = 'tp'),
             data = simdat, family = gaussian(),
             method = 'REML')
-summary(mod1)
+summary(mod1) ## we captured the 20% of the variation in the data
 
 # Plot the interaction using gratia
 draw(mod1)
@@ -66,14 +68,14 @@ draw(mod1)
 # use custom functions to determinehow the underlying data_grid() will 
 # be set up. This can be useful when plotting many effects
 summary_round = function(x){
-  round(fivenum(x, na.rm = TRUE), 4)
+  round(fivenum(x, na.rm = TRUE), 4) ## give the quantiles and round them
 }
 seq_even = function(x){
   seq(min(x, na.rm = TRUE), max(x, na.rm = TRUE), 
       length.out = 100)
 }
 
-plot_predictions(mod1, by = c('x0', 'x1'),
+plot_predictions(mod1, by = c('x0', 'x1'), ## creat a data grid: take x0 and stratifies it by x1
                  newdata = datagrid(model = mod1, 
                                     x0 = seq(min(simdat$x0), 
                                              max(simdat$x0),
@@ -123,6 +125,8 @@ mod3 <- gam(y ~ s(x0, k = 10, bs = 'tp') +
             method = 'REML')
 summary(mod3)
 
+## te uses main eff of x0 + main eff of x1 + main eff of both, but ti is just looks at the last term 
+
 # Drawing these functions can be very useful but also can be confusing;
 # i.e. the total effect of x0 is now spread among two different terms
 draw(mod3)
@@ -160,7 +164,7 @@ mod4 <- gam(y ~
             method = 'REML',
             
             # impose extra penalties to help regularize smooths toward
-            # straight lines
+            # straight lines ## regularized
             select = TRUE)
 
 # Interactions needed?
@@ -170,7 +174,7 @@ summary(mod4)
 draw(mod4)
 
 # Some more targeted plots with plot_predictions()
-plot_predictions(mod4, by = c('x0', 'x1', 'x2'),
+plot_predictions(mod4, by = c('x0', 'x1', 'x2'), ## data grid
                  newdata = datagrid(x0 = seq_even,
                                     x1 = summary_round,
                                     x2 = summary_round))  
@@ -182,7 +186,7 @@ plot_predictions(mod4, by = c('x1', 'x0', 'x2'),
 # Interactions can also be formed between a multidimensional smooth and
 # another effect (i.e. if you want a spatial smooth to interact with a smooth
 # of time)
-mod5 <- gam(y ~ te(x0, x1, x2, 
+mod5 <- gam(y ~ te(x0, x1, x2,  ## eg: x0 is lat, x2 is long, x2 is time 
                    # d tells te() that we want a 2-dimensional smooth
                    # of x0 and x1 to interact with a 1-dimensional 
                    # smooth of x2

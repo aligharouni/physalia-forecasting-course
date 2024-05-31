@@ -9,9 +9,55 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## 
+## Update the packages
+
+```{r update packages, echo=FALSE}
+# update any installed R packages
+update.packages(ask = FALSE, checkBuilt = TRUE)
+
+# packages to install for the course
+pkgs <- c("brms", "dplyr", "gratia", "ggplot2", "marginaleffects",
+          "tidybayes", "zoo", "viridis", "mvgam")
+
+# install packages
+install.packages(pkgs)
+
+# INSTALLING AND CHECKING STAN
+install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+library(cmdstanr)
+check_cmdstan_toolchain()
 
 
+install_cmdstan(cores = 2)
+
+
+```
+
+You should now be able to follow the remaining instructions on the Getting Started with CmdStanR page to ensure that Stan models can successfully compile on your machine. A quick way to check this would be to run this script:
+
+
+```{r codecheck, echo=FALSE}
+library(mvgam)
+simdat <- sim_mvgam()
+mod <- mvgam(y ~ s(season, bs = 'cc', k = 5) +
+               s(time, series, bs = 'fs', k = 8),
+             data = simdat$data_train)
+
+```
+
+
+## Notes during the lectures
+
+** Lec 1 **
+
+- smoothing splines is generally what we will talk about.
+- weight on spline basis and penalizing it determines the shape of the smoothers (so estimating the weights is the key) so the theory of GLM to GAM is not a huge jump.
+- (temporal) Random effect 
+
+- mgcv is designed with penelized basis
+- mvgam is built on mgcv it can handdle the NA in the response variabe but if there is NAs in the covariates, you may need to use mgcv, or impute those
+
+- bam : big addetive model
 
 
 

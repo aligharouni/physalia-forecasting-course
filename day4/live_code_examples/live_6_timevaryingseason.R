@@ -1,3 +1,5 @@
+## time varying seasonality
+
 library(mvgam)
 library(forecast)
 library(janitor)
@@ -7,7 +9,7 @@ library(ggplot2); theme_set(theme_bw())
 library(patchwork)
 
 # Load the AirPassengers dataset and plot the time series
-data("AirPassengers")
+data("AirPassengers") ##?AirPassengers
 plot(AirPassengers, bty = 'l', lwd = 1.5,
      col = 'darkred')
 
@@ -18,7 +20,7 @@ stl(AirPassengers, s.window = 9) %>%
 # This plot suggests that the seasonal pattern changes over time,
 # not just in magnitude but also perhaps a bit in shape. Convert
 # to a data.frame() object that is suitable for mgcv / mvgam modeling
-airdat <- series_to_mvgam(AirPassengers, freq = frequency(AirPassengers))
+airdat <- series_to_mvgam(AirPassengers, freq = frequency(AirPassengers)) 
 dplyr::glimpse(airdat$data_train)
 
 # Plot features of the series
@@ -28,7 +30,7 @@ plot_mvgam_series(data = airdat$data_train,
 # Now fit a model. First the traditional way to model time-varying 
 # seasonality using a tensor product of 'time' and 'season', 
 # where 'season' is modeled with a cyclic spline
-mod1 <- mvgam(y ~ te(season, time,
+mod1 <- mvgam(y ~ te(season, time, ## you can do this in mgcv 
                      bs = c('cc', 'tp'),
                      k = c(6, 15)),
               knots = list(season = c(0.5, 12.5)),
@@ -38,7 +40,7 @@ mod1 <- mvgam(y ~ te(season, time,
 
 # Predictions aren't too bad here, but perhaps the uncertainty 
 # is a bit too wide
-plot(mod1, type = 'forecast')
+plot(mod1, type = 'forecast') 
 
 # We can conveniently use gratia::draw() to view the time * season
 # smooth function
@@ -55,7 +57,7 @@ draw(mod1$mgcv_model)
 # There is another way we can model time-varying seasonality, in this
 # case using a fourier transform. First compute sine and cosine functions
 # using the forecast::fourier() function
-data.frame(forecast::fourier(AirPassengers, K = 4)) %>%
+data.frame(forecast::fourier(AirPassengers, K = 4)) %>% ## sine and cosine terms in 4 different periods
   # Use clean_names as fourier() gives terrible name types
   janitor::clean_names() -> fourier_terms
 dplyr::glimpse(fourier_terms)
@@ -77,7 +79,7 @@ mod2 <- mvgam(y ~
                 # Monotonic smooth of time to ensure the trend
                 # either increases or flattens, but does not 
                 # decrease
-                s(time, bs = 'moi', k = 10) +
+                s(time, bs = 'moi', k = 10) + ## inc/dec and stable, so the forecast won't gon down/up
                 
                 # Time-varying fourier coefficients to capture
                 # possibly changing seasonality
@@ -96,7 +98,7 @@ mod2 <- mvgam(y ~
 # at least somewhat controllable
 
 # This second model is preferred based on in-sample fits
-loo_compare(mod1, mod2)
+loo_compare(mod1, mod2) ## model 2 is good
 
 # But what about forecasts? Second model is again slightly preferred
 layout(matrix(1:2, nrow = 2))

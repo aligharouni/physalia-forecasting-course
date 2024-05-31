@@ -1,3 +1,7 @@
+#> Intro to mgcv is the goal here.
+#> 
+
+
 library(mgcv)
 library(marginaleffects)
 library(dplyr)
@@ -47,6 +51,7 @@ summary(model_data$logcount)
 
 # Maybe a Gamma?
 # Random effects in mgcv use the 're' basis
+# AG: grouping can be handled in mgcv too
 ?mgcv::smooth.construct.re.smooth.spec
 
 # A model with yearly random intercepts
@@ -61,7 +66,7 @@ any(model_data$logcount == 0L)
 # A Tweedie model may be best here
 mod <- gam(logcount ~ s(yearfac, bs = 're'),
            data = model_data,
-           family = Tweedie(p = 1.5),
+           family = Tweedie(p = 1.5), ## this p is handle the overdispersion and 1.5 is a good start
            method = 'REML')
 
 # Random effect variance component
@@ -72,6 +77,7 @@ summary(mod)
 
 # Residual diagnostics (using gratia)
 appraise(mod)
+#> the topright panel is res against 
 
 # Looks poor! Why? Look at the random effect estimates
 plot_predictions(mod, condition = 'yearfac')
@@ -86,8 +92,8 @@ ggplot(data.frame(model_data %>%
   facet_wrap(~region)
 
 # Aha! Need to add region as a factor as well
-mod2 <- gam(logcount ~ s(yearfac, bs = 're') +
-              s(region, bs = 're'),
+mod2 <- gam(logcount ~ s(yearfac, bs = 're') + 
+              s(region, bs = 're'), ## the trend stays the same but the ave effect on mean would be different 
             data = model_data,
             family = Tweedie(p = 1.5),
             method = 'REML')

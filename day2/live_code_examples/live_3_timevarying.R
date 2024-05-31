@@ -1,3 +1,4 @@
+## Goal: links to gaussian proc, and coef that vary in time
 library(mgcv)
 library(dplyr)
 library(marginaleffects)
@@ -10,6 +11,7 @@ library(ggplot2); theme_set(theme_bw())
 # alpha: amplitude of variation
 # rho: length scale (how 'wiggly' should the time-varying effect be?)
 sim_gp = function(N, c, alpha, rho){
+  # N num of time points, apha and rho are gp parameters
   Sigma <- alpha ^ 2 *
     exp(-0.5 * ((outer(1:N, 1:N, "-") / rho) ^ 2)) +
     diag(1e-9, N)
@@ -27,7 +29,7 @@ beta_t <- sim_gp(alpha = 0.75,
                  c = 0.5,
                  N = N)
 
-# Plot the coefficient
+# Plot the coefficient (this is the effect of a cov on a fake y)
 plot(beta_t, type = 'l', lwd = 3,
      bty = 'l', xlab = 'Time',
      ylab = 'Coefficient',
@@ -54,8 +56,8 @@ plot(y, type = 'l', lwd = 3,
 
 # Fit a linear model that assumes the coefficient is static
 dat <- data.frame(y, x, time = 1:N)
-mod0 <- gam(y ~ x + time, data = dat, method = 'REML')
-summary(mod0)
+mod0 <- gam(y ~ x + time, data = dat, method = 'REML') ## linear trend of time
+summary(mod0) ## the coef is fixed
 
 # Use plot_predictions() for effect interrogation
 plot_predictions(mod0, condition = 'x', points = 0.5)
@@ -65,7 +67,7 @@ plot_predictions(mod0, by = 'time', points = 0.5)
 avg_slopes(mod0, variables = 'x')
 
 # Model diagnostics with gratia
-appraise(mod0, n_simulate = 100, method = 'simulate')
+appraise(mod0, n_simulate = 100, method = 'simulate') ## 
 
 # This model clearly is inadequate. 
 # Now try a model that allows the coefficient to vary over time;
@@ -74,7 +76,8 @@ appraise(mod0, n_simulate = 100, method = 'simulate')
 # x, effectively allowing us to estimate arbitrarily-nonlinear effects that change
 # over time (look at the documentation on the 'by' argument in the s() help page
 # for more details)
-?mgcv::s
+?mgcv::s    
+?mgcv::gam.models ## look at the by
 mod1 <- gam(y ~ s(time, by = x, k = 25),
             data = dat, method = 'REML')
 summary(mod1)
@@ -108,7 +111,7 @@ appraise(mod1, n_simulate = 100, method = 'simulate')
 # But how would this smooth extrapolate if we wanted to forecast ahead?
 plot_predictions(mod1, by = c('time', 'x'),
                  newdata = datagrid(x = mean_round,
-                                    time = 1:(N + 20))) +
+                                    time = 1:(N + 20))) + ## 20 time step away
   geom_vline(xintercept = N, linetype = 'dashed')
 
 # Not really very realistic, the exrapolation behaviour is completely different
@@ -127,7 +130,7 @@ dat$time_factor
 
 # Fit the model using the mrf basis and including the RW penalty
 mod2 <- gam(y ~ s(time_factor, by = x,
-                  bs = "mrf",
+                  bs = "mrf", ##random walk on a field
                   k = 25,
                   xt = list(penalty = rw_penalty)),
             data = dat,

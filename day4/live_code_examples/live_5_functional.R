@@ -1,5 +1,6 @@
+##functional regression (outcome) ## How overall shape of the curve changes over time?
 library(mgcv)
-library(gamair)
+library(gamair) ## Simon Woods 
 library(marginaleffects)
 library(gratia)
 library(ggplot2); theme_set(theme_bw())
@@ -27,16 +28,16 @@ ggplot(CanWeather, aes(x = doy, y = T, colour = region)) +
 # But we don't know what value to use for the AR1 parameter
 # (which needs to be fixed in bam() models). So we use a profile likelihood approach to
 # select the best-fitting
-aic <- reml <- rho <- seq(0.9, 0.99, by = 0.01)
+aic <- reml <- rho <- seq(0.9, 0.99, by = 0.01) ## we will fit a model for each of these
 for(i in 1:length(rho)){
   # Fit models using a grid of possible AR1 parameters
-  b <- bam(T ~ s(region, bs = 're') + 
+  b <- bam(T ~ s(region, bs = 're') + ## random intercept for each reagon
              s(doy, k = 10, bs = "cr", by = region) +
              s(doy, k = 20, bs = "cr", by = latitude),
            data = CanWeather, 
            
            # Tell bam() where each time series begins
-           AR.start = time==1, 
+           AR.start = time==1, ## this tells the model where the timeseries start as there is a column in the df showing this
            rho = rho[i],
            
            # Use discrete covariates for faster fitting
