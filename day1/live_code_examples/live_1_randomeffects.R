@@ -3,7 +3,7 @@
 
 
 library(mgcv)
-library(marginaleffects)
+library(marginaleffects) ## for plot_predictions()
 library(dplyr)
 library(gratia)
 library(ggplot2); theme_set(theme_bw())
@@ -77,10 +77,11 @@ summary(mod)
 
 # Residual diagnostics (using gratia)
 appraise(mod)
-#> the topright panel is res against 
+#> the topright panel is res against predictor
 
 # Looks poor! Why? Look at the random effect estimates
-plot_predictions(mod, condition = 'yearfac')
+?marginaleffects::plot_predictions
+plot_predictions(mod, condition = 'yearfac') ## what is the effect of year factor ?
 
 # Look at residuals against region?
 resids <- residuals(mod)
@@ -112,6 +113,15 @@ ggplot(data.frame(model_data %>%
 
 # Better, but still obvious problems 
 # (the trend is not the same per region, how can we model this?)
+
+plot_predictions(mod2, by=c('yearfac','region'))
+## 
+## by : plot predictions for each year and region, but the ave counts differ
+## This shows that the ave counts (response var) different across regions but the trend stays the same (as we modeled it that way)
+
+## the 3rd thing in by is the facets
+plot_predictions(mod2, by=c('yearfac','region','region'))
+## 
 
 #### Bonus tasks ####
 # 1. Calculate residual ACF and pACF functions for each region using

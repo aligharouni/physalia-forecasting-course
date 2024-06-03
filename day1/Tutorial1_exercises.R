@@ -28,6 +28,8 @@ load_tutorial_files(filepath = 'Tutorial1_exercise_data.zip')
 # You may first need to run: 
 # remotes::install_github('nicholasjclark/mvgam', force = TRUE)
 library(dplyr)
+library(Rcpp)
+library(brms)
 library(mvgam) 
 library(gratia)
 library(ggplot2)
